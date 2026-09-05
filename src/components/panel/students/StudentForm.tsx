@@ -63,9 +63,18 @@ const EMPTY: FormState = {
  * date (admission + course duration), both fetched from the server so the
  * client never invents them.
  */
-export function StudentForm({ mode, student }: { mode: Mode; student?: StudentRow }) {
+export function StudentForm({
+  mode,
+  student,
+  scope = "branch",
+}: {
+  mode: Mode;
+  student?: StudentRow;
+  scope?: "branch" | "admin";
+}) {
   const router = useRouter();
   const { run, pending, error, fieldErrors } = useMutation();
+  const basePath = scope === "admin" ? "/admin-abc/students" : "/branch/students";
 
   const [form, setForm] = useState<FormState>(() =>
     student
@@ -170,6 +179,8 @@ export function StudentForm({ mode, student }: { mode: Mode; student?: StudentRo
     });
   }
 
+  const cancelHref = mode === "create" ? basePath : `${basePath}/${student!.student_id}`;
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
 
@@ -227,7 +238,7 @@ export function StudentForm({ mode, student }: { mode: Mode; student?: StudentRo
     );
 
     if (result.ok) {
-      router.push(`/branch/students/${result.data.student_id}`);
+      router.push(`${basePath}/${result.data.student_id}`);
       router.refresh();
     }
   }
@@ -243,10 +254,7 @@ export function StudentForm({ mode, student }: { mode: Mode; student?: StudentRo
             : "Registration number, branch and Aadhaar cannot be changed here."
         }
         actions={
-          <ButtonLink
-            href={mode === "create" ? "/branch/students" : `/branch/students/${student!.student_id}`}
-            variant="secondary"
-          >
+          <ButtonLink href={cancelHref} variant="secondary">
             Cancel
           </ButtonLink>
         }
@@ -562,11 +570,7 @@ export function StudentForm({ mode, student }: { mode: Mode; student?: StudentRo
             "Save changes"
           )}
         </Button>
-        <ButtonLink
-          href={mode === "create" ? "/branch/students" : `/branch/students/${student!.student_id}`}
-          variant="ghost"
-          size="lg"
-        >
+        <ButtonLink href={cancelHref} variant="ghost" size="lg">
           Cancel
         </ButtonLink>
       </div>

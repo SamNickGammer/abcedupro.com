@@ -27,13 +27,16 @@ export function MarksForm({
   student,
   credit,
   creditPerCertificate,
+  scope = "branch",
 }: {
   student: StudentRow;
   credit: number;
   creditPerCertificate: number;
+  scope?: "branch" | "admin";
 }) {
   const router = useRouter();
   const { run, pending, error } = useMutation();
+  const studentPath = `${scope === "admin" ? "/admin-abc/students" : "/branch/students"}/${student.student_id}`;
 
   const subjects = student.course_subjects.length
     ? student.course_subjects
@@ -77,7 +80,7 @@ export function MarksForm({
     });
 
     if (result.ok) {
-      router.push(`/branch/students/${student.student_id}`);
+      router.push(studentPath);
       router.refresh();
     }
   }
@@ -89,7 +92,7 @@ export function MarksForm({
         title={`Marks — ${student.student_name}`}
         description={`${student.course_name} (${student.short_form}). Each subject is out of 100.`}
         actions={
-          <ButtonLink href={`/branch/students/${student.student_id}`} variant="secondary">
+          <ButtonLink href={studentPath} variant="secondary">
             Back to student
           </ButtonLink>
         }
@@ -101,8 +104,11 @@ export function MarksForm({
           <div>
             <p className="text-sm font-semibold text-red-900">Not enough credits</p>
             <p className="mt-0.5 text-sm text-red-800">
-              A new marksheet costs {creditPerCertificate} credits and this branch has {credit}. Ask
-              head office to top up before submitting.
+              A new marksheet costs {creditPerCertificate} credits and {student.branch_name} has{" "}
+              {credit}.{" "}
+              {scope === "admin"
+                ? "Top the branch up from its branch page before submitting."
+                : "Ask head office to top up before submitting."}
             </p>
           </div>
         </Card>
@@ -185,7 +191,7 @@ export function MarksForm({
           )}
         </Button>
         <Link
-          href={`/branch/students/${student.student_id}`}
+          href={studentPath}
           className="text-sm font-semibold text-neutral-500 hover:text-neutral-800"
         >
           Cancel
