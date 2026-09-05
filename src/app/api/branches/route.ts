@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, parseQuery, validationFailed } from "@/lib/api";
 import { hashPassword, requireAdmin } from "@/lib/auth";
-import { uploadImage, storageConfigured } from "@/lib/storage";
+import { uploadImage } from "@/lib/storage";
 import { createBranchSchema, listBranchesSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -88,9 +88,9 @@ export const POST = handler(async (request) => {
 
   let image: string | null = null;
 
-  if (data.manager_photo && storageConfigured()) {
+  if (data.manager_photo) {
     const uploaded = await uploadImage(data.manager_photo, "manager", branch.id);
-    image = uploaded.url;
+    image = uploaded.key;
     await prisma.branch.update({ where: { id: branch.id }, data: { image } });
   }
 

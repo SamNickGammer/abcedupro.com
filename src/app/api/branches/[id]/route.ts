@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed, type RouteContext } from "@/lib/api";
 import { requireBranch } from "@/lib/auth";
 import { AuthError, HttpError } from "@/lib/errors";
-import { storageConfigured, uploadImage } from "@/lib/storage";
+import { uploadImage } from "@/lib/storage";
 import { updateBranchSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -88,8 +88,8 @@ export const PATCH = handler(async (request, context: RouteContext) => {
       : undefined;
 
   let image: string | undefined;
-  if (data.manager_photo && storageConfigured()) {
-    image = (await uploadImage(data.manager_photo, "manager", branch.id)).url;
+  if (data.manager_photo) {
+    image = (await uploadImage(data.manager_photo, "manager", branch.id)).key;
   }
 
   const updated = await prisma.branch.update({

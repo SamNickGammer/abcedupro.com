@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed, type RouteContext } from "@/lib/api";
 import { requireBranch, type AuthedBranch } from "@/lib/auth";
 import { AuthError, HttpError } from "@/lib/errors";
-import { storageConfigured, uploadImage } from "@/lib/storage";
+import { uploadImage } from "@/lib/storage";
 import { calculateRelievingDate, toDateOnly } from "@/lib/domain";
 import { presentStudent, studentInclude } from "@/lib/students";
 import { updateStudentSchema } from "@/lib/validation/schemas";
@@ -108,10 +108,10 @@ export const PATCH = handler(async (request, context: RouteContext) => {
     update.relievingDate = calculateRelievingDate(admissionDate, duration);
   }
 
-  if (data.student_photo && storageConfigured()) {
+  if (data.student_photo) {
     update.studentPhoto = (
       await uploadImage(data.student_photo, "student_photo", student.studentId)
-    ).url;
+    ).key;
   }
 
   const updated = await prisma.student.update({

@@ -6,37 +6,55 @@ import { HttpError } from "@/lib/errors";
  * Cloudflare R2 is S3-compatible, so the standard AWS SDK talks to it — the
  * only differences are the endpoint and that the region is always "auto".
  *
- * Uploads keep the legacy `student_photo/{id}/{filename}` key layout. That
- * matters: every certificate already issued embeds a URL in that shape, and
- * `rclone` can push the existing 2,609 files straight into the same prefixes.
+ * Photos are stored under the legacy `student_photo/{id}/{filename}` key
+ * layout. That matters: every certificate already issued embeds a URL in that
+ * shape, and `rclone` can push the existing files straight into the same
+ * prefixes.
+ *
+ * What is stored in the database is the **object key**, not an absolute URL.
+ * `resolvePhotoUrl` builds the URL at read time, which means the bucket can
+ * move from an r2.dev subdomain to a custom domain without rewriting a single
+ * row. Rows migrated from the old system hold absolute URLs instead, and are
+ * rewritten on the way out — so both shapes work.
  */
 
 let client: S3Client | null = null;
 
-function config() {
+/** The four values needed to read and write objects. */
+function credentials() {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
   const bucket = process.env.R2_BUCKET;
-  const publicBaseUrl = process.env.R2_PUBLIC_BASE_URL;
 
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl) {
-    return null;
-  }
+  if (!accountId || !accessKeyId || !secretAccessKey || !bucket) return null;
 
-  return { accountId, accessKeyId, secretAccessKey, bucket, publicBaseUrl };
+  return { accountId, accessKeyId, secretAccessKey, bucket };
 }
 
+/** Set once the bucket is published; uploads do not depend on it. */
+function publicBaseUrl() {
+  const value = process.env.R2_PUBLIC_BASE_URL;
+  return value ? value.replace(/\/+$/, "") : null;
+}
+
+/** Whether photos can be uploaded at all. */
 export function storageConfigured() {
-  return config() !== null;
+  return credentials() !== null;
+}
+
+/** Whether stored photos can actually be displayed to a browser. */
+export function storagePublic() {
+  return publicBaseUrl() !== null;
 }
 
 function getClient() {
-  const cfg = config();
+  const cfg = credentials();
 
   if (!cfg) {
     throw new HttpError(
-      "Image storage is not configured. Set the R2_* variables in .env — see docs/R2_SETUP.md.",
+      "Image storage is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, " +
+        "R2_SECRET_ACCESS_KEY and R2_BUCKET in .env — see docs/R2_SETUP.md.",
       503,
     );
   }
@@ -53,22 +71,22 @@ function getClient() {
   return { client, cfg };
 }
 
-const ALLOWED_MIME = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-]);
+const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/gif", "image/webp"]);
 
 const MAX_UPLOAD_BYTES = 2 * 1024 * 1024; // matches the old `max:2048` rule
 
-export type UploadedImage = { url: string; key: string };
+export type UploadedImage = {
+  /** What gets stored in the database. */
+  key: string;
+  /** Servable URL, or null until the bucket is published. */
+  url: string | null;
+};
 
 /**
- * Resizes to fit 300x300 and uploads. The legacy code did the same thing with
- * Intervention's `resize(300, 300, aspectRatio + upsize)`, i.e. "fit inside the
- * box, never enlarge" — `sharp`'s `fit: inside, withoutEnlargement` is exactly
- * that.
+ * Resizes to fit 300x300 and uploads. The legacy code did the same with
+ * Intervention's `resize(300, 300, aspectRatio + upsize)`, i.e. "fit inside
+ * the box, never enlarge" — `sharp`'s `fit: inside, withoutEnlargement` is
+ * exactly that.
  */
 export async function uploadImage(
   file: File,
@@ -104,7 +122,9 @@ export async function uploadImage(
     }),
   );
 
-  return { key, url: `${cfg.publicBaseUrl.replace(/\/+$/, "")}/${key}` };
+  const base = publicBaseUrl();
+
+  return { key, url: base ? `${base}/${key}` : null };
 }
 
 export async function deleteImage(key: string) {
@@ -128,25 +148,30 @@ function safeFilename(original: string) {
 }
 
 /**
- * Photos issued before the migration are stored as absolute URLs pointing at
- * the old cPanel host. Rewriting them to R2 lets old rows resolve without a
- * database backfill; anything already absolute-and-elsewhere is left alone.
+ * Turns whatever is stored on the row into a URL a browser can load.
+ *
+ * Three shapes reach this:
+ *   - an object key from a new upload      → prefix with the public base
+ *   - an absolute legacy abcedupro.com URL → swap the host for the public base
+ *   - any other absolute URL               → leave alone
+ *
+ * Returns null when the bucket has no public URL yet, so callers render their
+ * placeholder rather than a broken image.
  */
 export function resolvePhotoUrl(stored: string | null | undefined): string | null {
   if (!stored) return null;
 
-  const cfg = config();
-  if (!cfg) return stored;
+  const base = publicBaseUrl();
+  const legacyHost = /^https?:\/\/(?:www\.)?abcedupro\.com\//i;
 
-  const legacyPrefix = /^https?:\/\/(?:www\.)?abcedupro\.com\//i;
-
-  if (legacyPrefix.test(stored)) {
-    return stored.replace(legacyPrefix, `${cfg.publicBaseUrl.replace(/\/+$/, "")}/`);
+  if (legacyHost.test(stored)) {
+    return base ? stored.replace(legacyHost, `${base}/`) : stored;
   }
 
-  if (stored.startsWith("/")) {
-    return `${cfg.publicBaseUrl.replace(/\/+$/, "")}${stored}`;
-  }
+  // Anything else absolute is already servable as-is.
+  if (/^https?:\/\//i.test(stored)) return stored;
 
-  return stored;
+  if (!base) return null;
+
+  return `${base}/${stored.replace(/^\/+/, "")}`;
 }

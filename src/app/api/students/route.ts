@@ -2,7 +2,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, parseQuery, validationFailed } from "@/lib/api";
 import { requireBranch } from "@/lib/auth";
-import { storageConfigured, uploadImage } from "@/lib/storage";
+import { uploadImage } from "@/lib/storage";
 import { calculateRelievingDate, toDateOnly } from "@/lib/domain";
 import { presentStudent, searchWhere, statusWhere, studentInclude } from "@/lib/students";
 import { createStudentSchema, listStudentsSchema } from "@/lib/validation/schemas";
@@ -131,11 +131,14 @@ export const POST = handler(async (request) => {
       include: studentInclude,
     });
 
-    if (data.student_photo && storageConfigured()) {
+    // The upload happens after the insert because the key contains the new
+    // student's id. A failure here throws, and the student row stays — better
+    // than losing the enrolment over a photo.
+    if (data.student_photo) {
       const uploaded = await uploadImage(data.student_photo, "student_photo", created.studentId);
       const withPhoto = await prisma.student.update({
         where: { studentId: created.studentId },
-        data: { studentPhoto: uploaded.url },
+        data: { studentPhoto: uploaded.key },
         include: studentInclude,
       });
       return ok("Student created successfully.", presentStudent(withPhoto), undefined, 201);
