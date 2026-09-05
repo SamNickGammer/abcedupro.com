@@ -15,7 +15,11 @@
     "migrate:legacy": "tsx scripts/migrate-legacy.ts",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
-    "r2:check": "tsx scripts/r2-check.ts"
+    "r2:check": "tsx scripts/r2-check.ts",
+    "dump:analyse": "tsx scripts/analyse-dump.ts",
+    "dump:import": "tsx scripts/import-dump.ts",
+    "dump:photos": "tsx scripts/analyse-photos.ts",
+    "dump:verify": "tsx scripts/verify-import.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1127.0",

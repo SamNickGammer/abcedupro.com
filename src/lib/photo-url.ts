@@ -52,7 +52,11 @@ export function photoUrl(stored: string | null | undefined): string | null {
   if (!key) return stored;
 
   const base = publicBaseUrl();
-  return base ? `${base}/${key}` : `/api/photos/${encodeKey(key)}`;
+
+  // Over half of the production filenames contain spaces ("naushad 2273.jpg"),
+  // and some contain other characters that are not URL-safe. Keys are stored
+  // decoded, so each segment is encoded exactly once here.
+  return base ? `${base}/${encodeKey(key)}` : `/api/photos/${encodeKey(key)}`;
 }
 
 /**
@@ -73,6 +77,8 @@ export function signedPhotoUrl(stored: string | null | undefined): string | null
 
   const expires = Math.floor(Date.now() / 1000) + SIGNATURE_TTL_SECONDS;
 
+  // The signature covers the decoded key, which is what the route compares
+  // after decoding its own path segments.
   return `/api/photos/${encodeKey(key)}?exp=${expires}&sig=${sign(key, expires)}`;
 }
 
