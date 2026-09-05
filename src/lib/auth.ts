@@ -45,7 +45,7 @@ export async function setSessionCookie(user: SessionUser) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: sessionTtlSeconds(),
+    maxAge: sessionTtlSeconds(user.isAdmin),
   });
 }
 

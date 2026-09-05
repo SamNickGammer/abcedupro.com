@@ -1,17 +1,19 @@
 import type { ReactNode } from "react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
+import { SiteMain } from "@/components/site/SiteMain";
 
 /**
- * The public marketing site. The header is fixed, so pages start below it —
- * except the home page, whose hero deliberately sits underneath.
+ * The public site shell, matching welcome.blade.php: a fixed header, the page,
+ * then the footer. Every route except the home page is offset by 110px to
+ * clear the header — the same `pt-[110px]` the Blade layout applied.
  */
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <>
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <SiteMain>{children}</SiteMain>
       <SiteFooter />
-    </div>
+    </>
   );
 }

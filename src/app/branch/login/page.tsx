@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { LoginScreen } from "@/components/panel/LoginScreen";
+import { BranchLogin } from "./BranchLogin";
+import "./login.css";
 
-export const metadata: Metadata = { title: "Branch Sign In", robots: { index: false } };
+export const metadata: Metadata = {
+  title: "Branch Login - Institute of ABC",
+  robots: { index: false, follow: false },
+};
 
 export default function BranchLoginPage() {
   return (
     <Suspense>
-      <LoginScreen
-        portal="branch"
-        title="Branch portal"
-        subtitle="Sign in with the branch code and password issued by head office."
-        fallbackRedirect="/branch"
-      />
+      <BranchLogin />
     </Suspense>
   );
 }

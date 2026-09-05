@@ -10,7 +10,14 @@ import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
 export const SESSION_COOKIE = "abc_session";
 
-const DEFAULT_TTL_SECONDS = 60 * 60 * 12;
+/**
+ * Session lifetimes, carried over from the Blade panels: a branch session
+ * lasted 30 minutes and an admin session 60. They were enforced in
+ * sessionStorage, which the user could edit; here they are the JWT's own
+ * expiry, so the clock is the server's.
+ */
+const BRANCH_TTL_SECONDS = 30 * 60;
+const ADMIN_TTL_SECONDS = 60 * 60;
 
 export type SessionUser = {
   branchId: number;
@@ -38,9 +45,14 @@ function secret() {
   return new TextEncoder().encode(value);
 }
 
-export function sessionTtlSeconds() {
-  const parsed = Number(process.env.AUTH_SESSION_TTL);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_TTL_SECONDS;
+export function sessionTtlSeconds(isAdmin: boolean) {
+  const override = Number(
+    isAdmin ? process.env.AUTH_ADMIN_SESSION_TTL : process.env.AUTH_BRANCH_SESSION_TTL,
+  );
+
+  if (Number.isFinite(override) && override > 0) return override;
+
+  return isAdmin ? ADMIN_TTL_SECONDS : BRANCH_TTL_SECONDS;
 }
 
 export async function createSessionToken(user: SessionUser) {
@@ -52,7 +64,7 @@ export async function createSessionToken(user: SessionUser) {
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(String(user.branchId))
     .setIssuedAt()
-    .setExpirationTime(Math.floor(Date.now() / 1000) + sessionTtlSeconds())
+    .setExpirationTime(Math.floor(Date.now() / 1000) + sessionTtlSeconds(user.isAdmin))
     .sign(secret());
 }
 

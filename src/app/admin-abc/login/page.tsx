@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { LoginScreen } from "@/components/panel/LoginScreen";
+import { AdminLogin } from "./AdminLogin";
+import "./login.css";
 
-export const metadata: Metadata = { title: "Admin Sign In", robots: { index: false } };
+export const metadata: Metadata = {
+  title: "Admin Login - Institute of ABC",
+  robots: { index: false, follow: false },
+};
 
-export default function SuperAdminLoginPage() {
+export default function AdminLoginPage() {
   return (
     <Suspense>
-      <LoginScreen
-        portal="superadmin"
-        title="Head office"
-        subtitle="Administrator access to every branch, course and certificate."
-        fallbackRedirect="/admin-abc"
-      />
+      <AdminLogin />
     </Suspense>
   );
 }

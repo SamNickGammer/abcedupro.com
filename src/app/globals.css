@@ -62,6 +62,79 @@
   src: url("/assets/fonts/Hellix-Black.woff2") format("woff2");
 }
 
+
+/* ------------------------------------------------------- Hellix aliases */
+/* The Blade views name each weight as its own family (font-family:
+   'Hellix-Bold') and tag elements with utility classes (.font-HellixB).
+   Registering both forms lets the ported CSS and markup come across
+   unchanged. */
+
+@font-face {
+  font-family: "Hellix-Thin";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Thin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-Light";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Light.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-Regular";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-Medium";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-SemiBold";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-Bold";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-ExtraBold";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix-Black";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Black.woff2") format("woff2");
+}
+
+.font-HellixT { font-family: "Hellix", sans-serif; font-weight: 100; }
+.font-HellixL { font-family: "Hellix", sans-serif; font-weight: 300; }
+.font-HellixR { font-family: "Hellix", sans-serif; font-weight: 400; }
+.font-HellixM { font-family: "Hellix", sans-serif; font-weight: 500; }
+.font-HellixSB { font-family: "Hellix", sans-serif; font-weight: 600; }
+.font-HellixB { font-family: "Hellix", sans-serif; font-weight: 700; }
+.font-HellixEB { font-family: "Hellix", sans-serif; font-weight: 800; }
+.font-HellixBL { font-family: "Hellix", sans-serif; font-weight: 900; }
+
 /* ------------------------------------------------------------------ theme */
 
 @theme {

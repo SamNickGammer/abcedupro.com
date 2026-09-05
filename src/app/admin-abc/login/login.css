@@ -1,0 +1,91 @@
+/* Ported verbatim from resources/views/superadmin/pages/login.blade.php */
+
+.sa-login-bg {
+  min-height: 100vh;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+}
+.sa-login-bg::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(168, 85, 247, 0.06) 0%, transparent 50%);
+  animation: sa-bg-drift 20s ease-in-out infinite alternate;
+}
+@keyframes sa-bg-drift {
+  0% {
+    transform: translate(0, 0);
+  }
+  100% {
+    transform: translate(-5%, 3%);
+  }
+}
+.sa-login-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 400px;
+}
+.sa-login-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sa-login-input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+.sa-login-input:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.sa-login-btn {
+  width: 100%;
+  background: #fff;
+  color: #111;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sa-login-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+.sa-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sa-login-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
