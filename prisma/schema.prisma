@@ -81,6 +81,7 @@ model Branch {
   creditPerCertificate Int      @default(200) @map("credit_per_certificate")
 
   students             Student[]
+  sessions             Session[]
   certificateCharges   CertificateCharge[]
   membersCreated       LibraryMember[]  @relation("LibraryMemberCreatedBy")
   membersUpdated       LibraryMember[]  @relation("LibraryMemberUpdatedBy")
@@ -173,6 +174,50 @@ model CertificateCharge {
   @@index([branchId])
   @@index([studentId])
   @@map("certificate_charge")
+}
+
+/// A signed-in browser.
+///
+/// The cookie carries a random 256-bit token and nothing else — no role, no
+/// claims, nothing that means anything on its own. Only the SHA-256 of that
+/// token is stored, so a database leak yields no usable session.
+///
+/// Keeping sessions as rows rather than self-contained tokens is what makes
+/// revocation real: deleting the row ends the session immediately, which a
+/// stateless JWT cannot do.
+model Session {
+  /// SHA-256 of the token the browser holds, hex encoded.
+  tokenHash String   @id @map("token_hash")
+  branchId  BigInt   @map("branch_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  /// Recorded so a branch can recognise its own sessions and spot a stranger.
+  ip        String?  @db.VarChar(64)
+  userAgent String?  @map("user_agent")
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// One row per sign-in attempt, successful or not.
+///
+/// The old system had no throttling at all: every branch shares one password,
+/// so an unlimited guess rate against a known branch code was the whole attack.
+model LoginAttempt {
+  id         BigInt   @id @default(autoincrement())
+  /// Lower-cased branch code that was tried; kept even when no such branch exists.
+  identifier String
+  ip         String?  @db.VarChar(64)
+  succeeded  Boolean
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([identifier, createdAt])
+  @@index([ip, createdAt])
+  @@map("login_attempts")
 }
 
 // ---------------------------------------------------------------- library

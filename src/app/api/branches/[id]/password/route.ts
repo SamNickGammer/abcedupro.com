@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed, type RouteContext } from "@/lib/api";
-import { hashPassword, requireAdmin } from "@/lib/auth";
+import { hashPassword, requireAdmin, revokeAllSessions } from "@/lib/auth";
 import { setBranchPasswordSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -26,7 +26,11 @@ export const POST = handler(async (request, context: RouteContext) => {
     data: { password: hashPassword(parsed.data.new_password) },
   });
 
+  // Otherwise whoever knew the old password keeps a working session.
+  const revoked = await revokeAllSessions(branch.id);
+
   return ok("Password updated successfully.", {
     branch_code: branch.branchCode,
+    sessions_ended: revoked,
   });
 });

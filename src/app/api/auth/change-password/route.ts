@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed } from "@/lib/api";
-import { clearSessionCookie, hashPassword, requireBranch, verifyPassword } from "@/lib/auth";
+import {
+  endSession,
+  hashPassword,
+  requireBranch,
+  revokeAllSessions,
+  verifyPassword,
+} from "@/lib/auth";
 import { changePasswordSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -21,8 +27,12 @@ export const POST = handler(async (request) => {
     data: { password: hashPassword(parsed.data.newPassword) },
   });
 
-  // Force a fresh sign-in so any other live session dies with the old password.
-  await clearSessionCookie();
+  // The point of changing a password is that whoever knew the old one is
+  // locked out — which means every browser, not just this one.
+  const revoked = await revokeAllSessions(branch.id);
+  await endSession();
 
-  return ok("Password changed successfully. Please sign in again.");
+  return ok("Password changed successfully. Please sign in again.", undefined, {
+    sessions_ended: revoked,
+  });
 });
