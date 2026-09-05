@@ -1,26 +1,152 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ------------------------------------------------------------------ fonts */
+/* Hellix, carried over from the Laravel build. Each weight is its own family
+   there (font-HellixB, font-HellixR …); here they are weights of one family,
+   which is what lets `font-semibold` and friends work normally. */
+
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Thin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Light.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Hellix";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/assets/fonts/Hellix-Black.woff2") format("woff2");
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ------------------------------------------------------------------ theme */
+
+@theme {
+  --font-sans: "Hellix", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Carried over from the old tailwind.config.js */
+  --color-ink: #121212;
+  --color-clifford: #da373d;
+  --color-gray-d9: #d9d9d9;
+  --color-line-thin: #00000017;
+  --color-line-mid: #0000004d;
+
+  /* Panel palette */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe6ff;
+  --color-brand-200: #bed0ff;
+  --color-brand-500: #4f6ef7;
+  --color-brand-600: #3b55e0;
+  --color-brand-700: #2f43b5;
+
+  --breakpoint-1000: 1000px;
+
+  --animate-marquee: marquee 22s linear infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
   }
 }
 
+/* ----------------------------------------------------------------- basics */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Long tables scroll inside their own box rather than pushing the page wide. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Number inputs: hide the spinners, which misfire on touch. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
