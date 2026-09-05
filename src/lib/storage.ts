@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import sharp from "sharp";
 import { HttpError } from "@/lib/errors";
+import { photoUrl } from "@/lib/photo-url";
 
 /**
  * Cloudflare R2 is S3-compatible, so the standard AWS SDK talks to it — the
@@ -46,6 +47,12 @@ export function storageConfigured() {
 /** Whether stored photos can actually be displayed to a browser. */
 export function storagePublic() {
   return publicBaseUrl() !== null;
+}
+
+/** The configured S3 client and bucket, for callers that stream objects. */
+export function getStorageClient() {
+  const { client: s3, cfg } = getClient();
+  return { client: s3, bucket: cfg.bucket };
 }
 
 function getClient() {
@@ -150,28 +157,8 @@ function safeFilename(original: string) {
 /**
  * Turns whatever is stored on the row into a URL a browser can load.
  *
- * Three shapes reach this:
- *   - an object key from a new upload      → prefix with the public base
- *   - an absolute legacy abcedupro.com URL → swap the host for the public base
- *   - any other absolute URL               → leave alone
- *
- * Returns null when the bucket has no public URL yet, so callers render their
- * placeholder rather than a broken image.
+ * See `@/lib/photo-url` for the two ways a photo can be served.
  */
 export function resolvePhotoUrl(stored: string | null | undefined): string | null {
-  if (!stored) return null;
-
-  const base = publicBaseUrl();
-  const legacyHost = /^https?:\/\/(?:www\.)?abcedupro\.com\//i;
-
-  if (legacyHost.test(stored)) {
-    return base ? stored.replace(legacyHost, `${base}/`) : stored;
-  }
-
-  // Anything else absolute is already servable as-is.
-  if (/^https?:\/\//i.test(stored)) return stored;
-
-  if (!base) return null;
-
-  return `${base}/${stored.replace(/^\/+/, "")}`;
+  return photoUrl(stored);
 }

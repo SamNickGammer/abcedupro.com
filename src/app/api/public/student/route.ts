@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed } from "@/lib/api";
-import { resolvePhotoUrl } from "@/lib/storage";
+import { signedPhotoUrl } from "@/lib/photo-url";
 import {
   dateOnlyString,
   maskAadhaarNumber,
@@ -74,9 +74,9 @@ export const POST = handler(async (request) => {
     relieving_date: dateOnlyString(student.relievingDate),
     is_student_active: student.isStudentActive,
 
-    // Rewritten to the current storage host, so certificates issued before the
-    // move keep showing a photo.
-    student_photo: resolvePhotoUrl(student.studentPhoto),
+    // A link the visitor can load without a session, valid for 30 minutes and
+    // issued only now that the registration number and date of birth matched.
+    student_photo: signedPhotoUrl(student.studentPhoto),
 
     total_fees: student.totalFees === null ? null : Number(student.totalFees),
     paid_fees: student.paidFees === null ? null : Number(student.paidFees),
