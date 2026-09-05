@@ -1,0 +1,298 @@
+// ABC Edu Pro — data model.
+//
+// Field names are camelCase for TypeScript; @map keeps the physical column
+// names identical to the legacy MySQL schema so the migration from cPanel is a
+// straight column-for-column copy with no renaming step.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------- enums
+
+enum CourseStatus {
+  active
+  inactive
+
+  @@map("course_status")
+}
+
+enum MarksheetStage {
+  started
+  pending
+  verified
+
+  @@map("marksheet_stage")
+}
+
+enum Performance {
+  Excellent
+  Very_Good @map("Very Good")
+  Good
+  Failure
+
+  @@map("performance")
+}
+
+enum BookingStatus {
+  confirmed
+  secured
+
+  @@map("booking_status")
+}
+
+enum PaymentStatus {
+  pending
+  paid
+
+  @@map("payment_status")
+}
+
+// ---------------------------------------------------------------- core
+
+/// A franchise centre. The `admin` role is head office; everything else is a branch.
+model Branch {
+  id                   BigInt   @id @default(autoincrement())
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  phone                String
+  emailId              String   @map("email_id")
+  branchCode           String   @unique @map("branch_code")
+  branchName           String   @map("branch_name")
+  role                 String   @default("branch")
+  addressLine1         String   @map("address_line1")
+  addressLine2         String?  @map("address_line2")
+  city                 String
+  state                String
+  zip                  Int
+  firstName            String   @map("first_name")
+  lastName             String?  @map("last_name")
+  active               Boolean  @default(true)
+  image                String?
+  /// bcrypt hash. Legacy hashes verify unchanged — PHP and bcryptjs share the format.
+  password             String
+  centerCreationDate   DateTime @default(now()) @map("center_creation_date") @db.Date
+  credit               Int      @default(0)
+  creditPerCertificate Int      @default(200) @map("credit_per_certificate")
+
+  students             Student[]
+  certificateCharges   CertificateCharge[]
+  membersCreated       LibraryMember[]  @relation("LibraryMemberCreatedBy")
+  membersUpdated       LibraryMember[]  @relation("LibraryMemberUpdatedBy")
+  bookingsCreated      LibraryBooking[] @relation("LibraryBookingCreatedBy")
+  bookingsUpdated      LibraryBooking[] @relation("LibraryBookingUpdatedBy")
+  paymentLogsCreated   LibraryPaymentLog[]
+
+  @@map("branch")
+}
+
+model Course {
+  courseId       BigInt       @id @default(autoincrement()) @map("course_id")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  courseName     String       @unique @map("course_name")
+  shortForm      String       @unique @map("short_form") @db.VarChar(10)
+  courseDuration Int          @map("course_duration")
+  courseStatus   CourseStatus @default(active) @map("course_status")
+  courseFees     Decimal      @map("course_fees") @db.Decimal(10, 2)
+  subjects       String       @default("Written Marks, Practical Marks, Project Marks, Viva Marks")
+
+  students Student[]
+
+  @@map("courses")
+}
+
+model Student {
+  studentId          BigInt         @id @default(autoincrement()) @map("student_id")
+  studentName        String         @map("student_name")
+  registrationNumber String         @unique @map("registration_number")
+  studentEmail       String?        @map("student_email")
+  studentPhone       String         @map("student_phone")
+  studentFatherName  String?        @map("student_father_name")
+  studentMotherName  String?        @map("student_mother_name")
+
+  branchId        BigInt @map("branch_id")
+  studentCourseId BigInt @map("student_course_id")
+
+  dob                 DateTime        @db.Date
+  address             String?
+  city                String?
+  state               String?
+  zip                 String?         @db.VarChar(10)
+  admissionDate       DateTime        @map("admission_date") @db.Date
+  relievingDate       DateTime        @map("relieving_date") @db.Date
+  isStudentActive     Boolean         @default(true) @map("is_student_active")
+  isStudentDeleted    Boolean         @default(false) @map("is_student_deleted")
+  studentPhoto        String?         @map("student_photo")
+  totalFees           Decimal?        @map("total_fees") @db.Decimal(10, 2)
+  paidFees            Decimal?        @map("paid_fees") @db.Decimal(10, 2)
+  dueFees             Decimal?        @map("due_fees") @db.Decimal(10, 2)
+  marksheetId         String?         @unique @map("marksheet_id")
+  /// JSON object of subject -> mark, stored as text to match the legacy column.
+  marks               String?
+  marksheetStage      MarksheetStage  @default(started) @map("marksheet_stage")
+  overallPercent      Decimal?        @map("overall_percent") @db.Decimal(5, 2)
+  performance         Performance?
+  certifiedDate       DateTime?       @map("certified_date") @db.Date
+  isCertificateApprove Boolean        @default(false) @map("is_certificate_approve")
+  aadhaarNumber       String?         @unique @map("aadhaar_number")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [studentCourseId], references: [courseId], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([studentCourseId])
+  @@index([marksheetStage])
+  @@index([updatedAt])
+  @@map("student")
+}
+
+/// One row per credit deduction, so a branch can reconcile its balance.
+///
+/// The legacy table existed but was never written to — the balance moved with
+/// no record of why. `amount` and `studentId` are new; adding them costs
+/// nothing because there are no rows to migrate.
+model CertificateCharge {
+  id        BigInt   @id @default(autoincrement())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  branchId  BigInt   @map("branch_id")
+  studentId BigInt?  @map("student_id")
+  amount    Int      @default(0)
+  reason    String?
+
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([studentId])
+  @@map("certificate_charge")
+}
+
+// ---------------------------------------------------------------- library
+
+model LibraryConfig {
+  id          BigInt   @id @default(autoincrement())
+  configKey   String   @unique @map("config_key")
+  configValue String   @map("config_value")
+  valueType   String   @default("json") @map("value_type") @db.VarChar(20)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("library_config")
+}
+
+model LibraryMember {
+  memberId  BigInt   @id @default(autoincrement()) @map("member_id")
+  fullName  String   @map("full_name")
+  phone     String?  @db.VarChar(20)
+  notes     String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdByAdminBranchId BigInt? @map("created_by_admin_branch_id")
+  updatedByAdminBranchId BigInt? @map("updated_by_admin_branch_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  createdBy Branch? @relation("LibraryMemberCreatedBy", fields: [createdByAdminBranchId], references: [id], onDelete: SetNull)
+  updatedBy Branch? @relation("LibraryMemberUpdatedBy", fields: [updatedByAdminBranchId], references: [id], onDelete: SetNull)
+  bookings  LibraryBooking[]
+
+  @@map("library_members")
+}
+
+model LibraryBooking {
+  bookingId          BigInt        @id @default(autoincrement()) @map("booking_id")
+  bookingGroupId     String        @map("booking_group_id") @db.VarChar(64)
+  memberId           BigInt        @map("member_id")
+  bookingYear        Int           @map("booking_year") @db.SmallInt
+  bookingMonth       Int           @map("booking_month") @db.SmallInt
+  status             BookingStatus @default(confirmed)
+  blockCode          String        @map("block_code") @db.VarChar(20)
+  seatId             String        @map("seat_id") @db.VarChar(100)
+  seatLabel          String        @map("seat_label") @db.VarChar(50)
+  note               String?
+  monthlyPrice       Decimal       @map("monthly_price") @db.Decimal(10, 2)
+  paymentStatus      PaymentStatus @default(pending) @map("payment_status")
+  paymentMethod      String?       @map("payment_method") @db.VarChar(50)
+  paymentCollectedBy String?       @map("payment_collected_by")
+  paymentNote        String?       @map("payment_note")
+  paymentPaidAt      DateTime?     @map("payment_paid_at")
+  createdByAdminBranchId BigInt?   @map("created_by_admin_branch_id")
+  updatedByAdminBranchId BigInt?   @map("updated_by_admin_branch_id")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  member    LibraryMember @relation(fields: [memberId], references: [memberId], onDelete: Cascade)
+  createdBy Branch?       @relation("LibraryBookingCreatedBy", fields: [createdByAdminBranchId], references: [id], onDelete: SetNull)
+  updatedBy Branch?       @relation("LibraryBookingUpdatedBy", fields: [updatedByAdminBranchId], references: [id], onDelete: SetNull)
+
+  slots       LibraryBookingSlot[]
+  lockers     LibraryBookingLocker[]
+  paymentLogs LibraryPaymentLog[]
+
+  @@unique([bookingGroupId, bookingYear, bookingMonth], map: "library_bookings_group_month_unique")
+  @@index([bookingGroupId])
+  @@index([bookingYear, bookingMonth])
+  @@map("library_bookings")
+}
+
+/// One row per (seat, slot, month). The unique index is what makes double-booking
+/// impossible at the database level — the most load-bearing constraint in the app.
+model LibraryBookingSlot {
+  id           BigInt   @id @default(autoincrement())
+  bookingId    BigInt   @map("booking_id")
+  bookingYear  Int      @map("booking_year") @db.SmallInt
+  bookingMonth Int      @map("booking_month") @db.SmallInt
+  seatId       String   @map("seat_id") @db.VarChar(100)
+  slotCode     String   @map("slot_code") @db.VarChar(20)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  booking LibraryBooking @relation(fields: [bookingId], references: [bookingId], onDelete: Cascade)
+
+  @@unique([bookingYear, bookingMonth, seatId, slotCode], map: "library_slot_seat_unique")
+  @@index([bookingId])
+  @@map("library_booking_slots")
+}
+
+model LibraryBookingLocker {
+  id           BigInt   @id @default(autoincrement())
+  bookingId    BigInt   @map("booking_id")
+  bookingYear  Int      @map("booking_year") @db.SmallInt
+  bookingMonth Int      @map("booking_month") @db.SmallInt
+  lockerNumber Int      @map("locker_number")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  booking LibraryBooking @relation(fields: [bookingId], references: [bookingId], onDelete: Cascade)
+
+  @@unique([bookingYear, bookingMonth, lockerNumber], map: "library_locker_month_unique")
+  @@index([bookingId])
+  @@map("library_booking_lockers")
+}
+
+model LibraryPaymentLog {
+  id            BigInt    @id @default(autoincrement())
+  bookingId     BigInt    @map("booking_id")
+  amount        Decimal   @db.Decimal(10, 2)
+  paymentMethod String?   @map("payment_method") @db.VarChar(50)
+  collectedBy   String?   @map("collected_by")
+  note          String?
+  paidAt        DateTime? @map("paid_at")
+  createdByAdminBranchId BigInt? @map("created_by_admin_branch_id")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  booking   LibraryBooking @relation(fields: [bookingId], references: [bookingId], onDelete: Cascade)
+  createdBy Branch?        @relation(fields: [createdByAdminBranchId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@map("library_payment_logs")
+}

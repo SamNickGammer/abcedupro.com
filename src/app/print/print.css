@@ -1,0 +1,73 @@
+/* A4 landscape, no margin — the artwork carries its own border. */
+@page {
+  size: A4 landscape;
+  margin: 0;
+}
+
+.print-root {
+  background: #4a4f48;
+  min-height: 100vh;
+  padding: 24px 12px 48px;
+}
+
+.print-sheet {
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+
+.print-toolbar {
+  max-width: 297mm;
+  margin: 0 auto 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font: 500 13px/1.4 ui-sans-serif, system-ui, sans-serif;
+  color: #f1f1ec;
+}
+
+.print-toolbar a,
+.print-toolbar button {
+  font: inherit;
+  color: #131512;
+  background: #f1f1ec;
+  border: 1px solid #bfc0b6;
+  border-radius: 6px;
+  padding: 7px 13px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.print-toolbar a:hover,
+.print-toolbar button:hover {
+  background: #fff;
+}
+
+.print-toolbar .hint {
+  color: #cfd3cb;
+  font-weight: 400;
+}
+
+.print-toolbar code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Everything but the sheet disappears when printing. */
+@media print {
+  .print-root {
+    background: #fff;
+    padding: 0;
+  }
+
+  .print-toolbar {
+    display: none !important;
+  }
+
+  .print-sheet {
+    box-shadow: none;
+    margin: 0;
+  }
+}
