@@ -11,9 +11,14 @@ type State<T> = {
 };
 
 /**
- * Fetches on mount and whenever `path` changes, cancelling the in-flight
- * request first — so typing in a search box cannot let a slow earlier response
- * overwrite a fast later one.
+ * Fetches on mount and whenever `path` changes.
+ *
+ * A superseded response is ignored rather than aborted. Aborting looked
+ * tidier but fought React Strict Mode, which mounts every component twice in
+ * development: the first request was cancelled and immediately refired, so the
+ * network panel showed each call twice. Letting `api` deduplicate instead means
+ * the second mount reuses the first request, and the ignore-flag still
+ * guarantees a slow earlier response can never overwrite a fast later one.
  */
 export function useApi<T>(path: string | null, options?: RequestOptions) {
   const [state, setState] = useState<State<T>>({
@@ -33,15 +38,16 @@ export function useApi<T>(path: string | null, options?: RequestOptions) {
       return;
     }
 
-    const controller = new AbortController();
+    let ignore = false;
     setState((current) => ({ ...current, loading: true, error: null }));
 
-    api<T>(path, { ...optionsRef.current, signal: controller.signal })
+    api<T>(path, optionsRef.current)
       .then(({ data, extra }) => {
+        if (ignore) return;
         setState({ data, extra, loading: false, error: null });
       })
       .catch((error: unknown) => {
-        if (controller.signal.aborted) return;
+        if (ignore) return;
         setState({
           data: null,
           extra: {},
@@ -50,7 +56,9 @@ export function useApi<T>(path: string | null, options?: RequestOptions) {
         });
       });
 
-    return () => controller.abort();
+    return () => {
+      ignore = true;
+    };
   }, [path, nonce]);
 
   const refresh = useCallback(() => setNonce((value) => value + 1), []);
@@ -68,7 +76,10 @@ export function useMutation() {
     async <T,>(
       path: string,
       options: RequestOptions,
-    ): Promise<{ ok: true; data: T; message: string; extra: Record<string, unknown> } | { ok: false; error: ApiError }> => {
+    ): Promise<
+      | { ok: true; data: T; message: string; extra: Record<string, unknown> }
+      | { ok: false; error: ApiError }
+    > => {
       setPending(true);
       setError(null);
       setFieldErrors({});
@@ -78,9 +89,7 @@ export function useMutation() {
         return { ok: true, ...result };
       } catch (caught) {
         const apiError =
-          caught instanceof ApiError
-            ? caught
-            : new ApiError("Could not reach the server.", 0);
+          caught instanceof ApiError ? caught : new ApiError("Could not reach the server.", 0);
 
         setError(apiError.message);
         setFieldErrors(apiError.fields);

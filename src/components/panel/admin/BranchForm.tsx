@@ -17,6 +17,19 @@ export function BranchForm() {
   const { run, pending, error, fieldErrors } = useMutation();
   const [issued, setIssued] = useState<{ code: string; password: string; id: number } | null>(null);
 
+  // The manager photograph. The form previously sent JSON, which cannot carry a
+  // file, so the field was ignored — it now posts multipart.
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  function pickPhoto(file: File | null) {
+    setPhoto(file);
+    setPreview((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return file ? URL.createObjectURL(file) : null;
+    });
+  }
+
   const [form, setForm] = useState({
     branch_code: "",
     branch_name: "",
@@ -40,13 +53,16 @@ export function BranchForm() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
 
+    const body = new FormData();
+    for (const [key, value] of Object.entries(form)) {
+      if (value === "") continue;
+      body.set(key, key === "branch_code" ? value.toUpperCase() : value);
+    }
+    if (photo) body.set("manager_photo", photo);
+
     const result = await run<{ id: number; branchCode: string }>("/api/branches", {
       method: "POST",
-      body: {
-        ...form,
-        branch_code: form.branch_code.toUpperCase(),
-        initial_password: form.initial_password || undefined,
-      },
+      formData: body,
     });
 
     if (result.ok) {
@@ -293,6 +309,35 @@ export function BranchForm() {
               className={inputClass}
             />
           </Field>
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="mb-4 text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-500">
+          Manager photograph
+        </h2>
+        <div className="flex items-center gap-5">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
+            {preview ? (
+              /* eslint-disable-next-line @next/next/no-img-element -- local object URL preview */
+              <img src={preview} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
+                No photo
+              </div>
+            )}
+          </div>
+          <div className="flex-1">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={(event) => pickPhoto(event.target.files?.[0] ?? null)}
+              className="block w-full text-sm text-neutral-600 file:mr-3 file:rounded-lg file:border-0 file:bg-neutral-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-neutral-800"
+            />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              JPG, PNG or WebP, up to 2 MB. Resized to fit 300&times;300 on upload.
+            </p>
+          </div>
         </div>
       </Card>
 

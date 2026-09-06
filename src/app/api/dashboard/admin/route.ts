@@ -13,6 +13,8 @@ export const GET = handler(async () => {
     prisma.student.count({ where: { marksheetStage: "pending" } }),
     prisma.student.count({ where: { isCertificateApprove: true } }),
     prisma.course.count(),
+    // Deliberately still updated_at: this panel answers "what changed
+    // recently", not "who enrolled recently".
     prisma.student.findMany({
       include: studentInclude,
       orderBy: { updatedAt: "desc" },

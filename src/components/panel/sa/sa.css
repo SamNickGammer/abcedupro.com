@@ -1,0 +1,1178 @@
+/* Superadmin panel chrome — ported from
+   resources/views/superadmin/layout/{header,content}.blade.php */
+
+/* ------------------------------------------------------------------ header */
+
+.sa-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(17, 17, 17, 0.97);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sa-header-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sa-header-logo img {
+  height: 34px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+.sa-header-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.sa-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sa-header-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.sa-logout-btn {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sa-logout-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+.sa-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------------- sidebar */
+
+.sa-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 16px 12px;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  background: #111;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sa-sidebar::-webkit-scrollbar {
+  width: 0;
+}
+.sa-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 14px;
+  margin-bottom: 8px;
+  margin-top: 22px;
+}
+.sa-section-label:first-child {
+  margin-top: 0;
+}
+.sa-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+.sa-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+.sa-link.active {
+  background: #fff;
+  color: #111;
+}
+.sa-link.active .sa-icon {
+  color: #111;
+}
+/* The generic :hover rule below would repaint the active item's background
+   translucent-white over the dark sidebar while its icon and label stay dark —
+   which read as the icon vanishing. The active item keeps its solid white. */
+.sa-link.active:hover {
+  background: #fff;
+  color: #111;
+}
+.sa-link.active:hover .sa-icon {
+  color: #111;
+}
+.sa-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.15s;
+}
+.sa-link:hover .sa-icon {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* -------------------------------------------------------------------- main */
+
+.sa-body {
+  background: #f5f6f8;
+  min-height: 100vh;
+}
+.sa-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+.sa-main-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+.sa-main-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sa-main-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sa-main-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+/* ------------------------------------------------------- shared page parts */
+
+.sa-dash-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.sa-dash-card-inner {
+  padding: 24px 28px;
+}
+.sa-dash-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Skeletons — shown while data loads, so a slow page reads as "working"
+   rather than as an empty screen. */
+.sa-skel {
+  background: linear-gradient(90deg, #eef0f3 25%, #f6f7f9 37%, #eef0f3 63%);
+  background-size: 400% 100%;
+  animation: sa-shimmer 1.3s ease infinite;
+  border-radius: 6px;
+}
+@keyframes sa-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sa-skel {
+    animation: none;
+  }
+}
+
+/* Content fades in once loaded, so the swap from skeleton reads as a
+   transition rather than a flash. */
+.sa-fade-in {
+  animation: sa-fade 0.28s ease both;
+}
+@keyframes sa-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sa-not-supported {
+  display: none;
+}
+@media (max-width: 768px) {
+  .sa-not-supported {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    z-index: 100000;
+  }
+}
+
+/* --------------------------------------------------- all-students page */
+/* Ported from resources/views/superadmin/pages/all-students.blade.php */
+
+.sa-students-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 24px 28px;
+}
+.sa-stu-input {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  color: #111;
+  background: #fff;
+}
+.sa-stu-input:focus {
+  border-color: #111;
+}
+.sa-stu-select {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+  color: #111;
+}
+.sa-stu-select:focus {
+  border-color: #111;
+}
+.sa-stu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sa-stu-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+.sa-stu-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f9fafb;
+}
+.sa-stu-table tr:hover td {
+  background: #f9fafb;
+}
+.sa-stu-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sa-stu-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+  flex-wrap: wrap;
+}
+.sa-stu-page-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sa-stu-page-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+.sa-stu-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@keyframes sa-spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Both the registration number and the name open the student. */
+.sa-stu-link {
+  font-weight: 700;
+  color: #111;
+  text-decoration: none;
+}
+.sa-stu-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ------------------------------------------------- student detail / edit */
+/* Ported from superadmin/pages/{student-detail,edit-student}.blade.php */
+
+.sa-detail-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+.sa-detail-inner {
+  padding: 28px 32px;
+}
+.sa-detail-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.sa-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f9fafb;
+  font-size: 13.5px;
+  gap: 16px;
+}
+.sa-detail-row:last-child {
+  border-bottom: none;
+}
+.sa-detail-row-label {
+  color: #9ca3af;
+}
+.sa-detail-row-value {
+  text-align: right;
+  font-weight: 700;
+}
+.sa-info-pill {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 14px 20px;
+}
+.sa-info-pill-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.sa-info-pill-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+.sa-mark-card {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+}
+.sa-mark-card-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+.sa-mark-card-score {
+  font-size: 26px;
+  font-weight: 700;
+  color: #16a34a;
+}
+.sa-back-link {
+  font-size: 13px;
+  color: #9ca3af;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sa-back-link:hover {
+  color: #111;
+}
+.sa-primary-action {
+  background: #111;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-primary-action:hover {
+  background: #333;
+}
+
+/* --------------------------------------------------------------- edit form */
+
+.sa-edit-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+.sa-edit-inner {
+  padding: 28px 32px;
+}
+.sa-edit-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.sa-edit-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+.sa-edit-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  background: #fff;
+  box-sizing: border-box;
+  color: #111;
+}
+.sa-edit-input:focus {
+  border-color: #111;
+}
+.sa-edit-input-ro {
+  background: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.sa-edit-select {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 36px 10px 14px;
+  font-size: 13.5px;
+  outline: none;
+  font-family: inherit;
+  background: #fff;
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  color: #111;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.sa-edit-select:focus {
+  border-color: #111;
+}
+.sa-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.sa-edit-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+.sa-edit-file {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  background: #fff;
+  font-family: inherit;
+}
+.sa-edit-file::file-selector-button {
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  margin-right: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-edit-btn {
+  width: 100%;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-edit-btn:hover:not(:disabled) {
+  background: #333;
+}
+.sa-edit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.sa-edit-btn-danger {
+  width: 100%;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 24px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-edit-btn-danger:hover:not(:disabled) {
+  background: #fef2f2;
+}
+.sa-edit-btn-danger:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.sa-fee-prefix,
+.sa-phone-prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #9ca3af;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+}
+.sa-fee-prefix + .sa-edit-input,
+.sa-phone-prefix + .sa-edit-input {
+  border-radius: 0 10px 10px 0;
+}
+.sa-fragile-btn {
+  background: #92400e;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-fragile-btn:hover {
+  background: #78350f;
+}
+
+/* ------------------------------------------------------------------ modals */
+
+.sa-fragile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+}
+.sa-fragile-modal {
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
+  margin: auto;
+}
+.sa-fragile-password-modal {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
+  margin: auto;
+}
+.sa-fragile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.sa-fragile-marks-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.sa-fragile-note {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 16px 0 20px;
+}
+.sa-fragile-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+.sa-fragile-summary-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+}
+.sa-fragile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+.sa-fragile-secondary-btn {
+  background: #f3f4f6;
+  color: #111;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-fragile-primary-btn {
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.sa-fragile-primary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.sa-fragile-link-btn {
+  background: none;
+  border: none;
+  color: #92400e;
+  cursor: pointer;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 6px;
+  font-family: inherit;
+}
+.sa-fragile-password-error {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 700;
+}
+.sa-modal-close {
+  background: #f3f4f6;
+  border: none;
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sa-aadhaar-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.sa-aadhaar-wrap .sa-edit-input {
+  flex: 1;
+}
+.sa-aadhaar-update-btn {
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.sa-aadhaar-update-btn:hover {
+  background: #333;
+}
+.sa-aadhaar-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 5px 0 0;
+}
+
+.sa-cert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.sa-cert-btn-primary {
+  background: #1d4ed8;
+  color: #fff;
+}
+.sa-cert-btn-primary:hover {
+  background: #1e40af;
+}
+.sa-cert-btn-secondary {
+  background: #7c3aed;
+  color: #fff;
+}
+.sa-cert-btn-secondary:hover {
+  background: #6d28d9;
+}
+.sa-cert-btn-outline {
+  background: #fff;
+  color: #111;
+  border: 1px solid #e5e7eb;
+}
+.sa-cert-btn-outline:hover {
+  background: #f9fafb;
+}
+
+/* ---------------------------------------------------------- branch pages */
+/* Ported from superadmin/pages/branch-detail.blade.php */
+
+.bd-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+}
+.bd-inner {
+  padding: 28px 32px;
+}
+.bd-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.bd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f9fafb;
+  font-size: 13.5px;
+  gap: 16px;
+}
+.bd-row:last-child {
+  border-bottom: none;
+}
+.bd-row-label {
+  color: #9ca3af;
+}
+.bd-row-value {
+  text-align: right;
+  font-weight: 700;
+}
+.bd-stat {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  padding: 20px 22px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.bd-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.bd-stat-val {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.bd-stat-label {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bd-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.bd-action-btn:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+.bd-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.bd-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.bd-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+.bd-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f9fafb;
+}
+.bd-table tr:hover td {
+  background: #f9fafb;
+}
+.bd-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.bd-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.bd-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.bd-modal-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #111;
+}
+.bd-modal-input:focus {
+  border-color: #111;
+}
+.bd-modal-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.bd-modal-btn-cancel {
+  background: #f3f4f6;
+  color: #111;
+}
+.bd-modal-btn-go {
+  background: #16a34a;
+  color: #fff;
+}
+.bd-modal-btn-go:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Inline credit action in the branch list. */
+.bd-inline-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.bd-inline-credit:hover {
+  background: #dbeafe;
+}
+
+/* --------------------------------------------------------- courses page */
+/* Ported from superadmin/pages/courses.blade.php */
+
+.sa-course-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sa-course-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+.sa-course-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f9fafb;
+}
+.sa-course-table tr:hover td {
+  background: #f9fafb;
+}
+.sa-course-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.sa-course-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  color: #111;
+}
+.sa-course-input:focus {
+  border-color: #111;
+}
+.sa-course-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sa-course-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* Row actions.
+   One size for every row action across the panel, so Deactivate and Delete
+   sit on the same baseline instead of reading as loose text links. The icon
+   leads the label. */
+.sa-row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: #f3f4f6;
+  color: #4b5563;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+.sa-row-action svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.sa-row-action:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #111;
+}
+/* Pressed state — the colour change on click the button otherwise lacks. */
+.sa-row-action:active:not(:disabled) {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+.sa-row-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sa-row-action-danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.sa-row-action-danger:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.sa-row-action-danger:active:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+.sa-row-action-go {
+  background: #dcfce7;
+  color: #15803d;
+}
+.sa-row-action-go:hover:not(:disabled) {
+  background: #bbf7d0;
+  color: #14532d;
+}
+.sa-row-action-go:active:not(:disabled) {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.sa-row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Confirmation dialog, shared by every destructive row action. */
+.sa-confirm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.sa-confirm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}

@@ -2,57 +2,43 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePanelUser } from "@/lib/panel-session";
 import { prisma } from "@/lib/db";
-import { BranchDetail } from "@/components/panel/admin/BranchDetail";
+import { resolvePhotoUrl } from "@/lib/storage";
+import { SaBranchDetail } from "@/components/panel/sa/SaBranchDetail";
 
-export const metadata: Metadata = { title: "Branch" };
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const branch = await prisma.branch
+    .findUnique({ where: { id: BigInt(id) }, select: { branchName: true } })
+    .catch(() => null);
+  return { title: branch?.branchName ?? "Branch" };
+}
 
 export default async function BranchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePanelUser("admin");
-  const { id } = await params;
 
+  const { id } = await params;
   const branchId = Number(id);
   if (!Number.isInteger(branchId) || branchId <= 0) notFound();
 
-  const branch = await prisma.branch.findUnique({
-    where: { id: BigInt(branchId) },
-    select: {
-      id: true,
-      branchCode: true,
-      branchName: true,
-      firstName: true,
-      lastName: true,
-      phone: true,
-      emailId: true,
-      addressLine1: true,
-      addressLine2: true,
-      city: true,
-      state: true,
-      zip: true,
-      role: true,
-      active: true,
-      credit: true,
-      creditPerCertificate: true,
-      centerCreationDate: true,
-    },
-  });
-
+  const branch = await prisma.branch.findUnique({ where: { id: BigInt(branchId) } });
   if (!branch) notFound();
 
-  const [total, pending, certified, charges] = await Promise.all([
+  // Counted here rather than fetched by the client, so the stat cards are in
+  // the first paint instead of arriving a round trip later.
+  const [total, certified, pending] = await Promise.all([
     prisma.student.count({ where: { branchId: branch.id } }),
-    prisma.student.count({ where: { branchId: branch.id, marksheetStage: "pending" } }),
     prisma.student.count({ where: { branchId: branch.id, isCertificateApprove: true } }),
-    prisma.certificateCharge.findMany({
-      where: { branchId: branch.id },
-      orderBy: { createdAt: "desc" },
-      take: 12,
-      select: { id: true, amount: true, reason: true, createdAt: true },
-    }),
+    prisma.student.count({ where: { branchId: branch.id, marksheetStage: "pending" } }),
   ]);
 
   return (
-    <BranchDetail
+    <SaBranchDetail
       branch={{
         id: Number(branch.id),
         branchCode: branch.branchCode,
@@ -66,19 +52,18 @@ export default async function BranchDetailPage({ params }: { params: Promise<{ i
         city: branch.city,
         state: branch.state,
         zip: branch.zip,
+        image: branch.image,
+        imageUrl: resolvePhotoUrl(branch.image),
         role: branch.role,
         active: branch.active,
         credit: branch.credit,
         creditPerCertificate: branch.creditPerCertificate,
         centerCreationDate: branch.centerCreationDate.toISOString().slice(0, 10),
+        createdAt: branch.createdAt.toISOString(),
+        totalStudents: total,
+        certifiedStudents: certified,
+        pendingStudents: pending,
       }}
-      stats={{ total, pending, certified }}
-      charges={charges.map((charge) => ({
-        id: Number(charge.id),
-        amount: charge.amount,
-        reason: charge.reason,
-        createdAt: charge.createdAt.toISOString(),
-      }))}
     />
   );
 }

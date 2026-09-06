@@ -76,6 +76,8 @@ export type BranchRow = {
   state: string;
   zip: number;
   image: string | null;
+  /** Servable URL built from `image`; null until the bucket is reachable. */
+  imageUrl: string | null;
   role: string;
   active: boolean;
   credit: number;
@@ -83,6 +85,7 @@ export type BranchRow = {
   centerCreationDate: string;
   createdAt: string;
   updatedAt: string;
+  totalStudents: number;
 };
 
 export type BranchDashboard = {

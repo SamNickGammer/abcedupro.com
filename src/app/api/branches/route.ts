@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, parseQuery, validationFailed } from "@/lib/api";
 import { hashPassword, requireAdmin } from "@/lib/auth";
-import { uploadImage } from "@/lib/storage";
+import { uploadImage, resolvePhotoUrl } from "@/lib/storage";
 import { createBranchSchema, listBranchesSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -27,6 +27,9 @@ const BRANCH_LIST_SELECT = {
   centerCreationDate: true,
   createdAt: true,
   updatedAt: true,
+  // Shown on the list, so head office can see size at a glance rather than
+  // opening each branch to find out.
+  _count: { select: { students: true } },
 } as const;
 
 export const GET = handler(async (request) => {
@@ -41,7 +44,16 @@ export const GET = handler(async (request) => {
     orderBy: { branchCode: "asc" },
   });
 
-  return ok("Branches fetched successfully.", branches);
+  // `image` holds the object key; the panel needs something it can put in a
+  // src attribute, and the delivery host can change without touching the rows.
+  return ok(
+    "Branches fetched successfully.",
+    branches.map(({ _count, ...branch }) => ({
+      ...branch,
+      imageUrl: resolvePhotoUrl(branch.image),
+      totalStudents: _count.students,
+    })),
+  );
 });
 
 export const POST = handler(async (request) => {

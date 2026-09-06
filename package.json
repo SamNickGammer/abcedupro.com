@@ -19,7 +19,9 @@
     "dump:analyse": "tsx scripts/analyse-dump.ts",
     "dump:import": "tsx scripts/import-dump.ts",
     "dump:photos": "tsx scripts/analyse-photos.ts",
-    "dump:verify": "tsx scripts/verify-import.ts"
+    "dump:verify": "tsx scripts/verify-import.ts",
+    "upload:managers": "tsx scripts/upload-manager-photos.ts",
+    "library:demo": "tsx scripts/seed-library-demo.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1127.0",

@@ -8,6 +8,8 @@
  * the right login screen rather than leaving a half-rendered page behind.
  */
 
+import { dedupe, invalidateCache } from "@/lib/request-cache";
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -47,10 +49,30 @@ export type RequestOptions = {
   noRedirect?: boolean;
 };
 
+export type ApiResult<T> = { data: T; message: string; extra: Record<string, unknown> };
+
 export async function api<T = unknown>(
   path: string,
   options: RequestOptions = {},
-): Promise<{ data: T; message: string; extra: Record<string, unknown> }> {
+): Promise<ApiResult<T>> {
+  const method = options.method ?? "GET";
+
+  // Identical GETs in flight at the same time share one request, and one that
+  // just finished is reused briefly. Anything that writes clears the cache
+  // first, so a follow-up read never sees pre-write data.
+  if (method !== "GET") invalidateCache();
+
+  if (method === "GET" && !options.signal) {
+    return dedupe(path, () => request<T>(path, options)) as Promise<ApiResult<T>>;
+  }
+
+  return request<T>(path, options);
+}
+
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<ApiResult<T>> {
   const { method = "GET", body, formData, signal, noRedirect } = options;
 
   const response = await fetch(path, {

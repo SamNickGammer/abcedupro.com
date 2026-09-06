@@ -30,8 +30,11 @@ export const GET = handler(async (request) => {
         monthlyPrice: true,
       },
     }),
+    // Grouped by slot as well as month. A single occupancy figure hides the
+    // thing that actually matters when taking a booking: the morning slot can
+    // be full while the evening is empty, and the total says neither.
     prisma.libraryBookingSlot.groupBy({
-      by: ["bookingMonth"],
+      by: ["bookingMonth", "slotCode"],
       where: { bookingYear: year },
       _count: { _all: true },
     }),
@@ -42,9 +45,19 @@ export const GET = handler(async (request) => {
     }),
   ]);
 
-  const occupiedByMonth = new Map(
-    slotCounts.map((row) => [row.bookingMonth, row._count._all]),
-  );
+  const occupiedByMonth = new Map<number, number>();
+  const bySlot = new Map<number, Record<string, number>>();
+
+  for (const row of slotCounts) {
+    occupiedByMonth.set(
+      row.bookingMonth,
+      (occupiedByMonth.get(row.bookingMonth) ?? 0) + row._count._all,
+    );
+
+    const slots = bySlot.get(row.bookingMonth) ?? {};
+    slots[row.slotCode] = row._count._all;
+    bySlot.set(row.bookingMonth, slots);
+  }
   const lockersByMonth = new Map(
     lockerCounts.map((row) => [row.bookingMonth, row._count._all]),
   );
@@ -73,6 +86,11 @@ export const GET = handler(async (request) => {
       used_lockers: lockersByMonth.get(month) ?? 0,
       occupied_slot_seats: occupied,
       occupancy_percent: Math.round((occupied / capacity) * 100),
+      /** Seats taken in each slot, so free capacity is visible per slot. */
+      slot_usage: Object.fromEntries(
+        config.slot_definitions.map((slot) => [slot.id, bySlot.get(month)?.[slot.id] ?? 0]),
+      ),
+      seats_total: seats,
     };
   });
 

@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { fail, handler, ok, parseBody, validationFailed, type RouteContext } from "@/lib/api";
 import { requireBranch } from "@/lib/auth";
 import { AuthError, HttpError } from "@/lib/errors";
-import { uploadImage } from "@/lib/storage";
+import { uploadImage, resolvePhotoUrl } from "@/lib/storage";
 import { updateBranchSchema } from "@/lib/validation/schemas";
 
 export const runtime = "nodejs";
@@ -62,6 +62,7 @@ export const GET = handler(async (_request, context: RouteContext) => {
 
   return ok("Branch details fetched successfully.", {
     ...branch,
+    imageUrl: resolvePhotoUrl(branch.image),
     total_students: branch._count.students,
     certified_students: certified,
     pending_students: pending,

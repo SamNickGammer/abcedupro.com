@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { CoursesView } from "@/components/panel/admin/CoursesView";
+import { SaCourses } from "@/components/panel/sa/SaCourses";
 
 export const metadata: Metadata = { title: "Courses" };
 
 export default function CoursesPage() {
-  return <CoursesView />;
+  return <SaCourses />;
 }

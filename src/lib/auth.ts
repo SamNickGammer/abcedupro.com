@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { createHash, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
@@ -161,9 +162,16 @@ export async function revokeAllSessions(branchId: bigint) {
 /**
  * The signed-in branch, resolved from the token and re-read from the database.
  *
+ * Wrapped in React's `cache`, which memoises per request: a page whose layout
+ * and body both need the session makes one round trip, not two. Neon is in
+ * Singapore, so each avoided trip is 100-300ms off time-to-first-byte.
+ *
+ * The cache lives for one request only, so the security property is unchanged —
+ * every incoming request still re-reads the branch row.
+ *
  * Returns null rather than throwing, for callers that merely want to know.
  */
-export async function getAuthenticatedBranch() {
+export const getAuthenticatedBranch = cache(async function getAuthenticatedBranch() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
@@ -193,7 +201,7 @@ export async function getAuthenticatedBranch() {
   }
 
   return session.branch;
-}
+});
 
 /** Claims only, for callers that do not need the whole row. */
 export async function getSession(): Promise<SessionUser | null> {
