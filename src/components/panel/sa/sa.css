@@ -1017,3 +1017,162 @@
 .bd-inline-credit:hover {
   background: #dbeafe;
 }
+
+/* --------------------------------------------------------- courses page */
+/* Ported from superadmin/pages/courses.blade.php */
+
+.sa-course-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sa-course-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+.sa-course-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f9fafb;
+}
+.sa-course-table tr:hover td {
+  background: #f9fafb;
+}
+.sa-course-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.sa-course-input {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+  color: #111;
+}
+.sa-course-input:focus {
+  border-color: #111;
+}
+.sa-course-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.sa-course-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+/* Row actions.
+   One size for every row action across the panel, so Deactivate and Delete
+   sit on the same baseline instead of reading as loose text links. The icon
+   leads the label. */
+.sa-row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: #f3f4f6;
+  color: #4b5563;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+}
+.sa-row-action svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.sa-row-action:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #111;
+}
+/* Pressed state — the colour change on click the button otherwise lacks. */
+.sa-row-action:active:not(:disabled) {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+.sa-row-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sa-row-action-danger {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.sa-row-action-danger:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.sa-row-action-danger:active:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+.sa-row-action-go {
+  background: #dcfce7;
+  color: #15803d;
+}
+.sa-row-action-go:hover:not(:disabled) {
+  background: #bbf7d0;
+  color: #14532d;
+}
+.sa-row-action-go:active:not(:disabled) {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.sa-row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Confirmation dialog, shared by every destructive row action. */
+.sa-confirm-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+.sa-confirm-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
