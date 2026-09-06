@@ -1,0 +1,349 @@
+/* Superadmin panel chrome — ported from
+   resources/views/superadmin/layout/{header,content}.blade.php */
+
+/* ------------------------------------------------------------------ header */
+
+.sa-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(17, 17, 17, 0.97);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sa-header-logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sa-header-logo img {
+  height: 34px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+.sa-header-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.sa-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.sa-header-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.sa-logout-btn {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sa-logout-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+.sa-logout-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------------- sidebar */
+
+.sa-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  padding: 16px 12px;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+  background: #111;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+.sa-sidebar::-webkit-scrollbar {
+  width: 0;
+}
+.sa-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 14px;
+  margin-bottom: 8px;
+  margin-top: 22px;
+}
+.sa-section-label:first-child {
+  margin-top: 0;
+}
+.sa-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+.sa-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+.sa-link.active {
+  background: #fff;
+  color: #111;
+}
+.sa-link.active .sa-icon {
+  color: #111;
+}
+.sa-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.15s;
+}
+.sa-link:hover .sa-icon {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* -------------------------------------------------------------------- main */
+
+.sa-body {
+  background: #f5f6f8;
+  min-height: 100vh;
+}
+.sa-main-wrapper {
+  flex: 1;
+  min-width: 0;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+.sa-main-scroll {
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px 24px 40px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+.sa-main-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sa-main-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sa-main-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+/* ------------------------------------------------------- shared page parts */
+
+.sa-dash-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+.sa-dash-card-inner {
+  padding: 24px 28px;
+}
+.sa-dash-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Skeletons — shown while data loads, so a slow page reads as "working"
+   rather than as an empty screen. */
+.sa-skel {
+  background: linear-gradient(90deg, #eef0f3 25%, #f6f7f9 37%, #eef0f3 63%);
+  background-size: 400% 100%;
+  animation: sa-shimmer 1.3s ease infinite;
+  border-radius: 6px;
+}
+@keyframes sa-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sa-skel {
+    animation: none;
+  }
+}
+
+/* Content fades in once loaded, so the swap from skeleton reads as a
+   transition rather than a flash. */
+.sa-fade-in {
+  animation: sa-fade 0.28s ease both;
+}
+@keyframes sa-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sa-not-supported {
+  display: none;
+}
+@media (max-width: 768px) {
+  .sa-not-supported {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px;
+    z-index: 100000;
+  }
+}
+
+/* --------------------------------------------------- all-students page */
+/* Ported from resources/views/superadmin/pages/all-students.blade.php */
+
+.sa-students-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 24px 28px;
+}
+.sa-stu-input {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  color: #111;
+  background: #fff;
+}
+.sa-stu-input:focus {
+  border-color: #111;
+}
+.sa-stu-select {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+  color: #111;
+}
+.sa-stu-select:focus {
+  border-color: #111;
+}
+.sa-stu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.sa-stu-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: left;
+}
+.sa-stu-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid #f9fafb;
+}
+.sa-stu-table tr:hover td {
+  background: #f9fafb;
+}
+.sa-stu-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sa-stu-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 18px;
+  flex-wrap: wrap;
+}
+.sa-stu-page-btn {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sa-stu-page-btn:hover:not(:disabled) {
+  background: #f9fafb;
+}
+.sa-stu-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@keyframes sa-spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
