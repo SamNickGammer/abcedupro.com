@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { BranchesView } from "@/components/panel/admin/BranchesView";
+import { SaBranches } from "@/components/panel/sa/SaBranches";
 
 export const metadata: Metadata = { title: "Branches" };
 
 export default function BranchesPage() {
-  return <BranchesView />;
+  return <SaBranches />;
 }
