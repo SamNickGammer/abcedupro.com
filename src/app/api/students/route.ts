@@ -43,7 +43,12 @@ export const GET = handler(async (request) => {
   const query = {
     where,
     include: studentInclude,
-    orderBy: { updatedAt: "desc" },
+    // Newest enrolment first. The Blade panels ordered by `updated_at`, which
+    // meant any edit — a fee correction, a marks entry — jumped that student
+    // to the top and shuffled the list under whoever was reading it.
+    // `created_at` is stable: a row's position only changes when rows are added
+    // before it. `student_id` breaks ties, since bulk imports share a timestamp.
+    orderBy: [{ createdAt: "desc" }, { studentId: "desc" }],
   } satisfies Prisma.StudentFindManyArgs;
 
   if (!paginate) {

@@ -265,6 +265,7 @@ export function SaStudents() {
 }
 
 function StudentRowView({ student }: { student: StudentRow }) {
+  const href = `/admin-abc/students/${student.student_id}`;
   const status = student.is_certificate_approve
     ? { text: "Certified", bg: "#dbeafe", color: "#1d4ed8" }
     : student.marksheet_stage === "verified"
@@ -277,12 +278,15 @@ function StudentRowView({ student }: { student: StudentRow }) {
 
   return (
     <tr>
-      <td style={{ whiteSpace: "nowrap" }}>{student.registration_number}</td>
+      {/* Both the registration number and the name link to the same student,
+          so whichever the eye lands on first is clickable. */}
+      <td style={{ whiteSpace: "nowrap" }}>
+        <Link href={href} className="sa-stu-link">
+          {student.registration_number}
+        </Link>
+      </td>
       <td>
-        <Link
-          href={`/admin-abc/students/${student.student_id}`}
-          style={{ fontWeight: 700, color: "#111", textDecoration: "none" }}
-        >
+        <Link href={href} className="sa-stu-link">
           {student.student_name || "-"}
         </Link>
       </td>
