@@ -27,6 +27,9 @@ export type MonthSummary = {
   used_lockers: number;
   occupied_slot_seats: number;
   occupancy_percent: number;
+  /** Seats taken in each slot this month, keyed by slot id. */
+  slot_usage: Record<string, number>;
+  seats_total: number;
 };
 
 export type Booking = {
